@@ -1,5 +1,7 @@
 from sklearn.feature_selection import f_classif
 from sklearn.feature_selection import SelectKBest
+from sklearn.svm import SVC
+from sklearn.decomposition import PCA
 import warnings
 import gc
 from sklearn.metrics import roc_auc_score
@@ -8,8 +10,10 @@ from sklearn.model_selection import train_test_split, KFold, StratifiedKFold, cr
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.linear_model import RidgeCV, LassoCV, Ridge, Lasso
 from sklearn.feature_selection import RFE
-from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.pipeline import Pipeline, FeatureUnion
+from sklearn.model_selection import GridSearchCV
 from tqdm import tqdm
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -19,6 +23,7 @@ import pandas as pd
 gc.enable()
 warnings.filterwarnings('ignore')
 sns.set(rc={'figure.figsize': (20, 20)})
+student_id = 2000728661
 
 df = pd.read_csv(
     "dataset/2021_Competition_Training.csv")
@@ -115,7 +120,32 @@ df.to_csv('dataset/transformed_dataset.csv', index=False,
 # print(relevant_features)
 
 
+
+#### starting all feature selection stuff
+X, y = df[training_cols], df[target + '_t']
+
+pca = PCA(n_components=150, random_state=student_id)
 fs = SelectKBest(score_func=f_classif, k=150)
-X_selected = fs.fit_transform(df[training_cols], df[target + '_t'])
-print("selected_features")
-print(X_selected)
+
+
+combined_features = FeatureUnion([('pca', pca), ('univ_select', fs)])
+
+X_features = combined_features.fit(X, y).transform(X)
+print("Combined space has", X_features.shape[1], "features")
+
+tree = RandomForestClassifier(n_jobs=1, random_state=student_id, max_depth=15)
+
+selection_pipeline = Pipeline([('features', combined_features), ('tree', tree)])
+
+params = dict(
+    features__pca__n_components=[50, 100, 150],
+    features__univ_select__k=[100, 150],
+    tree__n_estimators=[400,600,700])
+
+search = GridSearchCV(selection_pipeline, param_grid=params, verbose=10, n_jobs=1, cv=4)
+search.fit(X, y)
+
+print(search.best_estimator_)
+print(search.best_params_)
+print(search.cv_results_)
+print(search.best_score_)
