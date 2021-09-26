@@ -3,10 +3,6 @@ from sklearn.feature_selection import SelectKBest
 import warnings
 import gc
 from sklearn.metrics import roc_auc_score
-import xgboost as xgb
-from tsfresh.utilities.dataframe_functions import impute
-from tsfresh import extract_features, select_features
-from lightgbm import LGBMClassifier
 from sklearn import metrics
 from sklearn.model_selection import train_test_split, KFold, StratifiedKFold, cross_val_score, RepeatedStratifiedKFold
 from sklearn.preprocessing import StandardScaler, LabelEncoder
@@ -15,7 +11,6 @@ from sklearn.feature_selection import RFE
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
-from catboost import CatBoostClassifier
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
@@ -106,20 +101,21 @@ df.to_csv('dataset/transformed_dataset.csv', index=False,
           columns=[target + '_t'] + training_cols)
 
 
-plt.figure(figsize=(12, 10))
-cor = df.corr()
-sns.heatmap(cor, annot=True, cmap=plt.cm.Reds)
-plt.xticks(rotation=45)
-plt.show()
+# plt.figure(figsize=(12, 10))
+# cor = df.corr()
+# sns.heatmap(cor, annot=True, cmap=plt.cm.Reds)
+# plt.xticks(rotation=45)
+# plt.show()
 
 
 #Correlation with output variable
-cor_target = abs(cor[target + '_t'])
-#Selecting highly correlated features
-relevant_features = cor_target[cor_target > 0.5]
-print(relevant_features)
+# cor_target = abs(cor[target + '_t'])
+# #Selecting highly correlated features
+# relevant_features = cor_target[cor_target > 0.5]
+# print(relevant_features)
 
 
-fs = SelectKBest(score_func=f_classif, k=200)
+fs = SelectKBest(score_func=f_classif, k=150)
 X_selected = fs.fit_transform(df[training_cols], df[target + '_t'])
+print("selected_features")
 print(X_selected)

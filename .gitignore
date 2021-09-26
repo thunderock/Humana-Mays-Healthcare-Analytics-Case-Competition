@@ -134,3 +134,4 @@ dataset/
 .idea/
 catboost_info/
 model.cbm
+*.txt
