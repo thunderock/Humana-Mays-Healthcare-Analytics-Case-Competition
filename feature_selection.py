@@ -138,10 +138,12 @@ pca = PCA(n_components=50, random_state=student_id)
 fs = SelectKBest(score_func=f_classif, k=100)
 
 
-combined_features = FeatureUnion([('pca', pca), ('univ_select', fs)])
+combined_features = FeatureUnion([('pca', pca), ('univ_select', fs)], n_jobs=4)
 
 X_features = combined_features.fit(X, y).transform(X)
+print("features in: {}".format(combined_features.n_features_in_))
 print("Combined space has", X_features.shape[1], "features")
+print("feature names: {}".format(combined_features.get_feature_names()))
 
 tree = RandomForestClassifier(n_jobs=1, random_state=student_id, max_depth=15)
 
@@ -152,7 +154,7 @@ params = dict(
     features__univ_select__k=[50, 100],
     tree__n_estimators=[400,600,700])
 
-search = GridSearchCV(selection_pipeline, param_grid=params, verbose=3, n_jobs=2, cv=4, scoring='roc_auc')
+search = GridSearchCV(selection_pipeline, param_grid=params, verbose=3, n_jobs=4, cv=4, scoring='roc_auc')
 search.fit(X, y)
 
 print(search.best_estimator_)
