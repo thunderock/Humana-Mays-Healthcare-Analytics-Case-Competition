@@ -142,7 +142,7 @@ params = dict(
     features__univ_select__k=[100, 150],
     tree__n_estimators=[400,600,700])
 
-search = GridSearchCV(selection_pipeline, param_grid=params, verbose=10, n_jobs=1, cv=4)
+search = GridSearchCV(selection_pipeline, param_grid=params, verbose=3, n_jobs=2, cv=4, scoring='roc_auc')
 search.fit(X, y)
 
 print(search.best_estimator_)
