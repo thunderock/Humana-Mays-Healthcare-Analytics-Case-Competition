@@ -14,6 +14,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.model_selection import GridSearchCV
+from sklearn.feature_selection import VarianceThreshold
 from tqdm import tqdm
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -122,10 +123,19 @@ df.to_csv('dataset/transformed_dataset.csv', index=False,
 
 
 #### starting all feature selection stuff
+constant_filter = VarianceThreshold(threshold=0)
+constant_filter.fit(df[training_cols])
+constant_columns = [column for column in training_cols if column not in df[training_cols].columns[constant_filter.get_support()]]
+
+print("size of features before removing constant filters: {}".format(len(training_cols)))
+training_cols = list(set(training_cols) - set(constant_columns))
+
+
+print("size of features after removing constant filters: {}".format(len(training_cols)))
 X, y = df[training_cols], df[target + '_t']
 
-pca = PCA(n_components=150, random_state=student_id)
-fs = SelectKBest(score_func=f_classif, k=150)
+pca = PCA(n_components=50, random_state=student_id)
+fs = SelectKBest(score_func=f_classif, k=100)
 
 
 combined_features = FeatureUnion([('pca', pca), ('univ_select', fs)])
@@ -138,8 +148,8 @@ tree = RandomForestClassifier(n_jobs=1, random_state=student_id, max_depth=15)
 selection_pipeline = Pipeline([('features', combined_features), ('tree', tree)])
 
 params = dict(
-    features__pca__n_components=[50, 100, 150],
-    features__univ_select__k=[100, 150],
+    features__pca__n_components=[25, 50],
+    features__univ_select__k=[50, 100],
     tree__n_estimators=[400,600,700])
 
 search = GridSearchCV(selection_pipeline, param_grid=params, verbose=3, n_jobs=2, cv=4, scoring='roc_auc')
