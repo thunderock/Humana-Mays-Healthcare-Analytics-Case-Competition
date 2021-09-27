@@ -155,7 +155,7 @@ params = dict(
     features__univ_select__k=[50, 100],
     tree__n_estimators=[400,600,700])
 
-search = GridSearchCV(selection_pipeline, param_grid=params, verbose=3, n_jobs=2, cv=4, scoring='roc_auc')
+search = GridSearchCV(selection_pipeline, param_grid=params, verbose=2, n_jobs=2, cv=4, scoring='roc_auc')
 search.fit(X, y)
 
 print("-------")
