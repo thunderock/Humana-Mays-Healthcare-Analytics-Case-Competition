@@ -51,11 +51,6 @@ print(df.shape)
 print(df.columns)
 
 
-plt.xticks(rotation=45)
-sns.barplot(x=df.isnull().sum().index, y=df.isnull().sum()/df.shape[0])
-plt.xticks(rotation=45)
-sns.barplot(x=df.nunique().index, y=df.nunique().values)
-sns.barplot(x=df[target].index, y=df[target].values)
 
 
 s = set()
@@ -110,8 +105,6 @@ df.rename(columns={target: target + '_t'})
 df[target + "_t"] = target_encoder.fit_transform(df[target])
 
 
-df.to_csv('dataset/transformed_dataset.csv', index=False,
-          columns=[target + '_t'] + training_cols)
 
 
 # plt.figure(figsize=(12, 10))
@@ -131,13 +124,13 @@ df.to_csv('dataset/transformed_dataset.csv', index=False,
 
 #### starting all feature selection stuff
 constant_filter = VarianceThreshold(threshold=0)
-constant_filter.fit(df[training_cols])
-constant_columns = [column for column in training_cols if column not in df[training_cols].columns[constant_filter.get_support()]]
+constant_filter.fit(df[reg_cols])
+constant_columns = [column for column in training_cols if column not in df[reg_cols].columns[constant_filter.get_support()]]
 
 print("size of features before removing constant filters: {}".format(len(training_cols)))
 training_cols = list(set(training_cols) - set(constant_columns))
 
-
+df.to_csv('dataset/transformed_dataset.csv', index=False, columns=[target + '_t'] + training_cols)
 print("size of features after removing constant filters: {}".format(len(training_cols)))
 
 print("variances: {}".format(constant_filter.variances_))
