@@ -132,6 +132,8 @@ training_cols = list(set(training_cols) - set(constant_columns))
 
 
 print("size of features after removing constant filters: {}".format(len(training_cols)))
+
+print("variances: {}".format(constant_filter.variances_))
 X, y = df[training_cols], df[target + '_t']
 
 pca = PCA(n_components=50, random_state=student_id)
@@ -156,8 +158,16 @@ params = dict(
 search = GridSearchCV(selection_pipeline, param_grid=params, verbose=3, n_jobs=4, cv=4, scoring='roc_auc')
 search.fit(X, y)
 
+print("-------")
 print(search.best_estimator_)
+print("-------")
 print(search.best_params_)
+print("-------")
 print(search.cv_results_)
+print("-------")
 print(search.best_score_)
+print("-------")
 print(search.best_estimator_.named_steps['features'])
+print("-------")
+print(fs.feature_names_in_)
+print("-------")
