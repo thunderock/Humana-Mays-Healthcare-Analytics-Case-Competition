@@ -143,7 +143,7 @@ combined_features = FeatureUnion([('pca', pca), ('univ_select', fs)], n_jobs=4)
 X_features = combined_features.fit(X, y).transform(X)
 print("features in: {}".format(combined_features.n_features_in_))
 print("Combined space has", X_features.shape[1], "features")
-print("feature names: {}".format(combined_features.get_feature_names()))
+print("feature names: {}".format(combined_features.get_feature_names_out()))
 
 tree = RandomForestClassifier(n_jobs=1, random_state=student_id, max_depth=15)
 
