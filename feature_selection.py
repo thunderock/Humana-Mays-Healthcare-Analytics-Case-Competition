@@ -127,7 +127,7 @@ df[target] = target_encoder.fit_transform(df[target])
 
 
 #### starting all feature selection stuff
-constant_filter = VarianceThreshold(threshold=.5)
+constant_filter = VarianceThreshold(threshold=.2)
 constant_filter.fit(df[reg_cols])
 constant_columns = [column for column in reg_cols if column not in df[reg_cols].columns[constant_filter.get_support()]]
 
@@ -135,7 +135,6 @@ print("size of features before removing constant filters: {}".format(len(trainin
 print(len(training_cols), len(constant_columns))
 training_cols = list(set(training_cols) - set(constant_columns))
 
-print("size of features after removing constant filters: {}".format(len(training_cols)))
 
 df.to_csv('dataset/transformed_dataset.csv', index=False, columns=[target] + training_cols)
 tdf.to_csv('dataset/transformed_dataset_holdout.csv', index=False, columns=training_cols + [id])
@@ -145,41 +144,4 @@ del tdf
 print("size of features after removing constant filters: {}".format(len(training_cols)))
 
 print("variances: {}".format(constant_filter.variances_))
-X, y = df[training_cols], df[target]
 
-pca = PCA(n_components=50, random_state=student_id)
-fs = SelectKBest(score_func=f_classif, k=100)
-
-
-combined_features = FeatureUnion([('univ_select', fs), ('pca', pca)], n_jobs=4)
-
-X_features = combined_features.fit(X, y).transform(X)
-print("features in: {}".format(combined_features.n_features_in_))
-print("Combined space has", X_features.shape[1], "features")
-
-tree = RandomForestClassifier(n_jobs=1, random_state=student_id, max_depth=15)
-
-selection_pipeline = Pipeline([('features', combined_features), ('tree', tree)])
-
-params = dict(
-    features__pca__n_components=[50],
-    features__univ_select__k=[100],
-    tree__n_estimators=[700, 600])
-
-search = GridSearchCV(selection_pipeline, param_grid=params, verbose=2, n_jobs=2, cv=3, scoring='roc_auc')
-search.fit(X, y)
-
-print("-------")
-print(search.best_estimator_)
-print("-------")
-print(search.best_params_)
-print("-------")
-print(search.cv_results_)
-print("-------")
-print(search.best_score_)
-print("-------")
-print(search.best_estimator_.named_steps['features'])
-print("-------")
-
-joblib.dump(search, 'grid_search_best_tree.pkl')
-# joblib.load("model_file_name.pkl")
