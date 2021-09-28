@@ -105,8 +105,7 @@ for col in tqdm(reg_cols):
     tdf[col] = temp
 
 target_encoder = LabelEncoder()
-df.rename(columns={target: target + '_t'})
-df[target + "_t"] = target_encoder.fit_transform(df[target])
+df[target] = target_encoder.fit_transform(df[target])
 
 
 
@@ -134,8 +133,8 @@ constant_columns = [column for column in training_cols if column not in df[reg_c
 print("size of features before removing constant filters: {}".format(len(training_cols)))
 training_cols = list(set(training_cols) - set(constant_columns))
 
-df.to_csv('dataset/transformed_dataset.csv', index=False, columns=[target + '_t'] + training_cols)
-tdf.to_csv('dataset/transformed_dataset_holdout.csv', index=False, columns=training_cols)
+df.to_csv('dataset/transformed_dataset.csv', index=False, columns=[target] + training_cols)
+tdf.to_csv('dataset/transformed_dataset_holdout.csv', index=False, columns=training_cols + [ID])
 
 del tdf
 
@@ -143,7 +142,7 @@ del tdf
 print("size of features after removing constant filters: {}".format(len(training_cols)))
 
 print("variances: {}".format(constant_filter.variances_))
-X, y = df[training_cols], df[target + '_t']
+X, y = df[training_cols], df[target]
 
 pca = PCA(n_components=50, random_state=student_id)
 fs = SelectKBest(score_func=f_classif, k=100)
@@ -162,9 +161,9 @@ selection_pipeline = Pipeline([('features', combined_features), ('tree', tree)])
 params = dict(
     features__pca__n_components=[50],
     features__univ_select__k=[100],
-    tree__n_estimators=[700, 800])
+    tree__n_estimators=[700])
 
-search = GridSearchCV(selection_pipeline, param_grid=params, verbose=2, n_jobs=2, cv=4, scoring='roc_auc')
+search = GridSearchCV(selection_pipeline, param_grid=params, verbose=2, n_jobs=2, cv=3, scoring='roc_auc')
 search.fit(X, y)
 
 print("-------")
