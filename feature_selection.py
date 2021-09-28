@@ -169,8 +169,6 @@ print(search.best_score_)
 print("-------")
 print(search.best_estimator_.named_steps['features'])
 print("-------")
-print(fs.feature_names_in_)
-print("-------")
 
 joblib.dump(search, 'grid_search_best_tree.pkl')
 # joblib.load("model_file_name.pkl")
