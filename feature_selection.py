@@ -52,6 +52,7 @@ print(df.shape)
 print(df.columns)
 
 
+print("size of reg :{}, size of cat: {}".format(len(reg_cols), len(cat_cols)))
 
 
 s = set()
@@ -126,16 +127,18 @@ df[target] = target_encoder.fit_transform(df[target])
 
 
 #### starting all feature selection stuff
-constant_filter = VarianceThreshold(threshold=0)
+constant_filter = VarianceThreshold(threshold=.5)
 constant_filter.fit(df[reg_cols])
-constant_columns = [column for column in training_cols if column not in df[reg_cols].columns[constant_filter.get_support()]]
+constant_columns = [column for column in reg_cols if column not in df[reg_cols].columns[constant_filter.get_support()]]
 
 print("size of features before removing constant filters: {}".format(len(training_cols)))
+print(len(training_cols), len(constant_columns))
 training_cols = list(set(training_cols) - set(constant_columns))
 
-df.to_csv('dataset/transformed_dataset.csv', index=False, columns=[target] + training_cols)
-tdf.to_csv('dataset/transformed_dataset_holdout.csv', index=False, columns=training_cols + [ID])
+print("size of features after removing constant filters: {}".format(len(training_cols)))
 
+df.to_csv('dataset/transformed_dataset.csv', index=False, columns=[target] + training_cols)
+tdf.to_csv('dataset/transformed_dataset_holdout.csv', index=False, columns=training_cols + [id])
 del tdf
 
 
@@ -161,7 +164,7 @@ selection_pipeline = Pipeline([('features', combined_features), ('tree', tree)])
 params = dict(
     features__pca__n_components=[50],
     features__univ_select__k=[100],
-    tree__n_estimators=[700])
+    tree__n_estimators=[700, 600])
 
 search = GridSearchCV(selection_pipeline, param_grid=params, verbose=2, n_jobs=2, cv=3, scoring='roc_auc')
 search.fit(X, y)
