@@ -28,6 +28,7 @@ sns.set(rc={'figure.figsize': (20, 20)})
 student_id = 2000728661
 
 df = pd.read_csv("dataset/2021_Competition_Training.csv", low_memory=False)
+tdf = pd.read_csv("dataset/2021_Competition_Holdout.csv", low_memory=False)
 # xls = pd.read_excel("../input/humanamays-healthcare-analytics-case-competition/Humana_Mays_2021_DataDictionary.xlsx")
 # tdf = pd.read_csv("../input/humanamays-healthcare-analytics-case-competition/2021_Competition_Holdout.csv")
 target = "covid_vaccination"
@@ -86,12 +87,13 @@ training_cols = reg_cols + cat_cols
 
 # no cat column with int type and null values
 
-label_encoders = {}
+
 for col in tqdm(cat_cols):
     dtype = df[col].dtype
     temp = df[col].fillna('nan').astype(str)
     df[col] = temp
-
+    temp = tdf[col].fillna('nan').astype(str)
+    tdf[col] = temp
 
 # no reg column with int type and null values
 for col in tqdm(reg_cols):
@@ -99,6 +101,8 @@ for col in tqdm(reg_cols):
     # need to scale here, probably
     temp = df[col].fillna(0.)
     df[col] = temp
+    temp = tdf[col].fillna(0.)
+    tdf[col] = temp
 
 target_encoder = LabelEncoder()
 df.rename(columns={target: target + '_t'})
@@ -131,6 +135,11 @@ print("size of features before removing constant filters: {}".format(len(trainin
 training_cols = list(set(training_cols) - set(constant_columns))
 
 df.to_csv('dataset/transformed_dataset.csv', index=False, columns=[target + '_t'] + training_cols)
+tdf.to_csv('dataset/transformed_dataset_holdout.csv', index=False, columns=training_cols)
+
+del tdf
+
+
 print("size of features after removing constant filters: {}".format(len(training_cols)))
 
 print("variances: {}".format(constant_filter.variances_))
@@ -140,7 +149,7 @@ pca = PCA(n_components=50, random_state=student_id)
 fs = SelectKBest(score_func=f_classif, k=100)
 
 
-combined_features = FeatureUnion([('pca', pca), ('univ_select', fs)], n_jobs=4)
+combined_features = FeatureUnion([('univ_select', fs), ('pca', pca)], n_jobs=4)
 
 X_features = combined_features.fit(X, y).transform(X)
 print("features in: {}".format(combined_features.n_features_in_))
@@ -151,9 +160,9 @@ tree = RandomForestClassifier(n_jobs=1, random_state=student_id, max_depth=15)
 selection_pipeline = Pipeline([('features', combined_features), ('tree', tree)])
 
 params = dict(
-    features__pca__n_components=[25, 50],
-    features__univ_select__k=[50, 100],
-    tree__n_estimators=[400,600,700])
+    features__pca__n_components=[50],
+    features__univ_select__k=[100],
+    tree__n_estimators=[700, 800])
 
 search = GridSearchCV(selection_pipeline, param_grid=params, verbose=2, n_jobs=2, cv=4, scoring='roc_auc')
 search.fit(X, y)
