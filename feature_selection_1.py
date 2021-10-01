@@ -52,17 +52,23 @@ X, y = df[training_cols], df[target]
 pca = PCA(n_components=50, random_state=student_id)
 cat_index = [i for i in range(len(reg_cols), len(training_cols))]
 score_func = partial(mutual_info_classif, discrete_features=cat_index)
+
+
+print(len(reg_cols), len(cat_cols))
+print(cat_index)
+
 fs = SelectKBest(score_func=score_func, k=150)
 
 
 combined_features = FeatureUnion([('univ_select', fs)], n_jobs=4)
 
-X_features = combined_features.fit(X, y).transform(X)
+cat_features = combined_features.fit(X, y).transform(X)
 print("features in: {}".format(combined_features.n_features_in_))
 print("Combined space has", X_features.shape[1], "features")
 
 tree = lgb.LGBMClassier(n_jobs=2, random_seed=student_id, deterministic=True, #device_type='GPU',
                         max_depth=15, learning_rate=.1)
+
 
 selection_pipeline = Pipeline(
 	[('features', combined_features), ('tree', tree)])
