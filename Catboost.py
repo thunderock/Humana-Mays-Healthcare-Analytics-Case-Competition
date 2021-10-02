@@ -363,8 +363,7 @@ m = CatBoostClassifier(random_state = student_id, task_type="GPU", devices='0:1'
                            cat_features=cat_cols, metric_period=40,
                            od_type='Iter', loss_function="Logloss",
                        max_depth=max_depth, learning_rate=learning_rate[1], n_estimators=n_estimators[1])
-m.fit(params,
-            X,
+m.fit(X,
             y=y,
             eval_set=(X_t, y_t),
             verbose=True,
