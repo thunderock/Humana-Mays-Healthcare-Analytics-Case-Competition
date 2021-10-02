@@ -367,7 +367,6 @@ m.fit(X,
             y=y,
             eval_set=(X_t, y_t),
             verbose=True,
-            verbose_eval=True,
             plot=True, 
             use_best_model=True)
 
