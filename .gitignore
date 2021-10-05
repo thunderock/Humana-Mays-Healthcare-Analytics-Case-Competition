@@ -129,6 +129,7 @@ dmypy.json
 
 
 dataset/
+models/
 
 .idea/
 catboost_info/
